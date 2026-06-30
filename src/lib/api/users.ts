@@ -4,18 +4,26 @@ import { API_BASE_URL, getAuthToken } from './config';
 export const fetchUserProfile = async (userId: string) => {
   console.log('Fetching user profile for:', userId);
   const token = getAuthToken();
-  const response = await fetch(`${API_BASE_URL}/getUserFiles/${userId}`, {
+  // Use getUserById to retrieve the FULL appusers document (legacy parity).
+  // getUserFiles only returns a limited field set, which left most profile
+  // tabs (personal/mandatory/address/family/education/religion/partner) empty.
+  const response = await fetch(`${API_BASE_URL}/getUserById/${userId}`, {
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
       'Content-Type': 'application/json',
     },
   });
-  
+
   if (!response.ok) {
     throw new Error('Failed to fetch user profile');
   }
-  
-  return response.json();
+
+  const result = await response.json();
+  // getDataById returns { id, data: {...} }; flatten so tabs can read fields directly.
+  if (result && typeof result === 'object' && result.data && typeof result.data === 'object') {
+    return { id: result.id, ...result.data };
+  }
+  return result;
 };
 
 export const fetchAllUsers = async () => {

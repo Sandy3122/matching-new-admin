@@ -25,12 +25,25 @@ import NotificationMonitoringTab from './notifications/NotificationMonitoringTab
 import NotificationEventLogsTab from './notifications/NotificationEventLogsTab';
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Persist the selected dashboard tab so a browser refresh — or navigating into
+// a user profile and coming back — restores the same tab instead of resetting
+// to the default Analytics view.
+const ACTIVE_TAB_STORAGE_KEY = 'mj.admin.activeTab';
+
+const getInitialActiveTab = (): string => {
+  try {
+    return localStorage.getItem(ACTIVE_TAB_STORAGE_KEY) || 'analytics';
+  } catch {
+    return 'analytics';
+  }
+};
+
 interface DashboardProps {
   onLogout: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
-  const [activeTab, setActiveTab] = useState("analytics");
+  const [activeTab, setActiveTab] = useState(getInitialActiveTab);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [sidebarMobileOpen, setSidebarMobileOpen] = useState(false);
@@ -43,6 +56,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const handleTabChange = (tabId: string) => {
     console.log('Changing tab to:', tabId);
     setActiveTab(tabId);
+    // Remember the selected tab across refreshes and profile navigation.
+    try {
+      localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, tabId);
+    } catch {
+      // ignore storage failures (e.g. private mode)
+    }
     // Close mobile sidebar when tab changes
     if (isMobile) {
       setSidebarMobileOpen(false);

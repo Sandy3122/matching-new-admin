@@ -131,7 +131,7 @@ const UserRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Gender:</Label>
               <Select value={formData.gender} onValueChange={(value) => updateFormData('gender', value)}>
@@ -163,7 +163,7 @@ const UserRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="email">Email:</Label>
               <Input
@@ -185,7 +185,7 @@ const UserRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="dateOfBirth">Date Of Birth:</Label>
               <Input
@@ -212,7 +212,7 @@ const UserRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Religion:</Label>
               <Select value={formData.religion} onValueChange={(value) => updateFormData('religion', value)}>
@@ -240,7 +240,7 @@ const UserRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label>Living With Child:</Label>
               <Select value={formData.livingWithChild} onValueChange={(value) => updateFormData('livingWithChild', value)}>

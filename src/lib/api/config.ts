@@ -1,4 +1,17 @@
-export const API_BASE_URL = 'https://matchingjodi-backup.web.app/api';
+/**
+ * Backend API base URL.
+ *
+ * The legacy production app is served from the Firebase project `matchingjodiweb`
+ * (see functions/.firebaserc -> projects.production), i.e. https://matchingjodiweb.web.app/api.
+ * The app previously pointed at `matchingjodi-backup` which is the testing/development
+ * project, so every page showed a different/smaller dataset than production.
+ *
+ * Override per environment with a VITE_API_BASE_URL entry in a .env file, e.g.:
+ *   VITE_API_BASE_URL=https://matchingjodi-backup.web.app/api   (testing)
+ */
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/+$/, '') ||
+  'https://matchingjodiweb.web.app/api';
 
 /**
  * Decode a JWT and check if it is expired.

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { EnhancedTable, ColumnDef } from '@/components/ui/enhanced-table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -30,10 +31,32 @@ interface RoutePermissions {
   [key: string]: ('read' | 'write')[];
 }
 
+// Turn a free-typed custom role name into a camelCase key (e.g.
+// "Content Moderator" -> "contentModerator") to match the existing role-key
+// convention, while the original text is kept as the display label.
+const toRoleKey = (label: string): string => {
+  const cleaned = label
+    .trim()
+    .replace(/[^a-zA-Z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(Boolean);
+  if (cleaned.length === 0) return label.trim();
+  return cleaned
+    .map((word, i) =>
+      i === 0
+        ? word.toLowerCase()
+        : word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    )
+    .join('');
+};
+
 const AccessRightsTab: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<AccessRight | null>(null);
+  // When true, the Role field becomes a free-text input for creating a brand
+  // new (custom) role that isn't in the predefined accessRoles list.
+  const [customMode, setCustomMode] = useState(false);
   const [newRole, setNewRole] = useState({
     role: '',
     status: 'active' as 'active' | 'inactive',
@@ -88,13 +111,18 @@ const AccessRightsTab: React.FC = () => {
 
   const addMutation = useMutation({
     mutationFn: async () => {
+      const typed = newRole.role.trim();
+      // Custom roles get a camelCase key + the typed text as a saved label;
+      // predefined roles use their existing key (no label change).
+      const role = customMode ? toRoleKey(typed) : typed;
+      const roleLabel = customMode ? typed : undefined;
       const routeName = Object.keys(newRole.routes);
-      await addAccessRight({ role: newRole.role, status: newRole.status });
+      await addAccessRight({ role, status: newRole.status, roleLabel });
       // The create endpoint starts with an empty route list; assign selected
       // routes by looking up the freshly created role id.
       if (routeName.length > 0) {
         const latest = await fetchAccessRights();
-        const created = latest.find((r) => r.role === newRole.role);
+        const created = latest.find((r) => r.role === role);
         if (created) {
           await updateAccessRightRoutes({ id: created.id, routeName });
         }
@@ -103,7 +131,10 @@ const AccessRightsTab: React.FC = () => {
     onSuccess: () => {
       toast({ title: 'Success', description: 'Role access rights created successfully.' });
       queryClient.invalidateQueries({ queryKey: ['accessRights'] });
+      // Refresh the roles dropdown so a newly added custom role appears.
+      queryClient.invalidateQueries({ queryKey: ['accessRoles'] });
       setIsAddDialogOpen(false);
+      setCustomMode(false);
       setNewRole({ role: '', status: 'active', routes: {} });
     },
     onError: (error: Error) => {
@@ -131,7 +162,7 @@ const AccessRightsTab: React.FC = () => {
     },
   });
 
-  const availableRoutes = routesData?.allRoutes || [
+  const availableRoutes = routesData?.allRoutes || routesData?.data?.allRoutes || [
     '/employee-search', '/getall-employees', '/profile', '/addEmployee',
     '/access-rights', '/getall-appUsers', '/getUserById/:documentId',
     '/getImageList', '/updateImageStatus', '/user-registration',
@@ -144,11 +175,18 @@ const AccessRightsTab: React.FC = () => {
     '/profileInfo', '/resetPassword', '/reset-employeePassword'
   ];
 
-  const availableRoles = Object.keys(rolesData || {}).filter(key => key !== 'selectRole');
+  // The accessRoles dropdown comes back from getDocumentData wrapped as
+  // { id, data: {...rolesMap} }. Unwrap to the actual role map so the dropdown
+  // and labels work (fall back to the raw object for safety).
+  const rolesMap: Record<string, unknown> =
+    rolesData && typeof rolesData === 'object' && 'data' in rolesData
+      ? (rolesData.data as Record<string, unknown>)
+      : (rolesData as Record<string, unknown>) || {};
+  const availableRoles = Object.keys(rolesMap).filter((key) => key !== 'selectRole');
 
   const handleAddRole = () => {
-    if (!newRole.role) {
-      toast({ title: 'Error', description: 'Please select a role.', variant: 'destructive' });
+    if (!newRole.role.trim()) {
+      toast({ title: 'Error', description: 'Please select or enter a role.', variant: 'destructive' });
       return;
     }
     addMutation.mutate();
@@ -156,6 +194,7 @@ const AccessRightsTab: React.FC = () => {
 
   const handleEditRole = (role: AccessRight) => {
     setSelectedRole(role);
+    setCustomMode(false);
     setNewRole({
       role: role.role,
       status: role.status,
@@ -226,7 +265,7 @@ const AccessRightsTab: React.FC = () => {
         const item = row.original;
         return (
           <Badge variant="secondary" className="capitalize">
-            {rolesData && typeof rolesData[item.role] === 'string' ? rolesData[item.role] : item.role}
+            {typeof rolesMap[item.role] === 'string' ? (rolesMap[item.role] as string) : item.role}
           </Badge>
         );
       },
@@ -346,11 +385,14 @@ const AccessRightsTab: React.FC = () => {
     },
   ];
 
-  const RoleFormDialog = ({ 
-    isOpen, 
-    onOpenChange, 
-    title, 
-    onSubmit 
+  // Rendered inline (not as <Component/>) so toggling checkboxes doesn't remount
+  // the dialog. Defining it as a nested component caused a full remount/flicker
+  // on every state change.
+  const renderRoleFormDialog = ({
+    isOpen,
+    onOpenChange,
+    title,
+    onSubmit
   }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -367,10 +409,22 @@ const AccessRightsTab: React.FC = () => {
         </DialogHeader>
         
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="role">Role</Label>
-              <Select value={newRole.role} onValueChange={(value) => setNewRole(prev => ({ ...prev, role: value }))} disabled={title.includes('Edit')}>
+              <Select
+                value={customMode ? '__custom__' : newRole.role}
+                onValueChange={(value) => {
+                  if (value === '__custom__') {
+                    setCustomMode(true);
+                    setNewRole((prev) => ({ ...prev, role: '' }));
+                  } else {
+                    setCustomMode(false);
+                    setNewRole((prev) => ({ ...prev, role: value }));
+                  }
+                }}
+                disabled={title.includes('Edit')}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
@@ -381,11 +435,22 @@ const AccessRightsTab: React.FC = () => {
                       value={role} 
                       disabled={Array.isArray(accessRights) ? accessRights.some(ar => ar.role === role && ar.id !== selectedRole?.id) : false}
                     >
-                      {rolesData && typeof rolesData[role] === 'string' ? rolesData[role] : role}
+                      {typeof rolesMap[role] === 'string' ? (rolesMap[role] as string) : role}
                     </SelectItem>
                   ))}
+                  {!title.includes('Edit') && (
+                    <SelectItem value="__custom__">➕ Custom role…</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
+              {customMode && !title.includes('Edit') && (
+                <Input
+                  autoFocus
+                  placeholder="Enter custom role name"
+                  value={newRole.role}
+                  onChange={(e) => setNewRole((prev) => ({ ...prev, role: e.target.value }))}
+                />
+              )}
             </div>
             
             <div className="space-y-2">
@@ -469,6 +534,7 @@ const AccessRightsTab: React.FC = () => {
             className="bg-pink-600 hover:bg-pink-700 text-white"
             onClick={() => {
               setNewRole({ role: '', status: 'active', routes: {} });
+              setCustomMode(false);
               setIsAddDialogOpen(true);
             }}
           >
@@ -478,19 +544,19 @@ const AccessRightsTab: React.FC = () => {
         }
       />
 
-      <RoleFormDialog
-        isOpen={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        title="Add New Role Rights"
-        onSubmit={handleAddRole}
-      />
+      {renderRoleFormDialog({
+        isOpen: isAddDialogOpen,
+        onOpenChange: setIsAddDialogOpen,
+        title: 'Add New Role Rights',
+        onSubmit: handleAddRole,
+      })}
 
-      <RoleFormDialog
-        isOpen={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        title="Edit Role Rights"
-        onSubmit={handleUpdateRole}
-      />
+      {renderRoleFormDialog({
+        isOpen: isEditDialogOpen,
+        onOpenChange: setIsEditDialogOpen,
+        title: 'Edit Role Rights',
+        onSubmit: handleUpdateRole,
+      })}
     </div>
   );
 };

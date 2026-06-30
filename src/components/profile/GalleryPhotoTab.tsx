@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateImageStatus, uploadUserDocs } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+import { formatToIST } from '@/lib/utils';
 import ImageModal from '@/components/ui/image-modal';
 
 interface GalleryPhotoTabProps {
@@ -154,7 +155,7 @@ const GalleryPhotoTab: React.FC<GalleryPhotoTabProps> = ({
                   Verified By Id: <span className="text-blue-600">{photo.verifiedBy}</span>; 
                   Verified By Name: <span className="text-blue-600">{photo.verifiedByName}</span>; 
                   Status: <span className="text-yellow-600">{photo.statusText}</span>; 
-                  Date: <span className="text-blue-600">{photo.date}</span>.
+                  Date: <span className="text-blue-600">{formatToIST(photo.date)}</span>.
                 </span>
               </div>
               

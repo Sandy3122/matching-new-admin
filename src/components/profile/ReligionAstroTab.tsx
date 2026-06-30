@@ -73,6 +73,7 @@ const ReligionAstroTab: React.FC<ReligionAstroTabProps> = ({
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin';
 
   const religionOptions = dropdowns?.find((d: any) => d.id === 'religion')?.data || {};
+  const casteOptions = dropdowns?.find((d: any) => d.id === 'caste')?.data || {};
   const manglikOptions = dropdowns?.find((d: any) => d.id === 'manglik')?.data || {};
   const rashiOptions = dropdowns?.find((d: any) => d.id === 'rashi')?.data || {};
 
@@ -103,12 +104,24 @@ const ReligionAstroTab: React.FC<ReligionAstroTabProps> = ({
 
           <div>
             <Label>Caste:*</Label>
-            <Input
+            <Select
               value={formData.caste}
-              onChange={(e) => setFormData({...formData, caste: e.target.value})}
+              onValueChange={(value) => setFormData({...formData, caste: value})}
               disabled={!canEdit}
-              placeholder="Enter caste"
-            />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Caste" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* Preserve a previously-saved value that is not in the options list */}
+                {formData.caste && !(formData.caste in casteOptions) && (
+                  <SelectItem value={formData.caste}>{formData.caste}</SelectItem>
+                )}
+                {Object.entries(casteOptions).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>{value as string}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>

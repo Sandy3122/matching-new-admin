@@ -58,15 +58,6 @@ const UserProfile: React.FC = () => {
     setIsAuthenticated(true);
   };
 
-  // If not authenticated, show login form
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen">
-        <LoginForm onLogin={handleLogin} />
-      </div>
-    );
-  }
-
   const { data: userProfile, isLoading: isUserLoading, error: userError } = useQuery({
     queryKey: ['userProfile', id],
     queryFn: () => fetchUserProfile(id!),
@@ -102,6 +93,15 @@ const UserProfile: React.FC = () => {
     enabled: !!id && isAuthenticated,
     retry: 1,
   });
+
+  // Auth gate AFTER all hooks to keep hook order stable across renders.
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen">
+        <LoginForm onLogin={handleLogin} />
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -222,8 +222,14 @@ const UserProfile: React.FC = () => {
           <span className="ml-2">Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-80 bg-gradient-to-b from-pink-500 to-pink-600 text-white">
-        <div className="mt-6 space-y-2">
+      <SheetContent
+        side="left"
+        className="w-80 max-w-[85vw] p-0 bg-gradient-to-b from-pink-500 to-pink-600 text-white flex flex-col"
+      >
+        <div className="px-4 pt-5 pb-3 border-b border-pink-400 shrink-0">
+          <h2 className="text-base font-semibold">Profile Sections</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -282,10 +288,10 @@ const UserProfile: React.FC = () => {
             </div>
 
             {/* User profile header */}
-            <div className="px-4 md:px-6 py-4 md:py-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                <div 
-                  className="w-16 h-16 md:w-20 md:h-20 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center cursor-pointer"
+            <div className="px-4 md:px-6 py-3 md:py-6">
+              <div className="flex flex-row items-center gap-3 sm:gap-6">
+                <div
+                  className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center cursor-pointer overflow-hidden"
                   onClick={() => {
                     if (isProfileImageVerified && profileImage?.imgUrl) {
                       setIsProfileImageModalOpen(true);
@@ -299,26 +305,26 @@ const UserProfile: React.FC = () => {
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-pink-700 rounded-full"></div>
+                    <div className="w-9 h-9 md:w-16 md:h-16 bg-pink-700 rounded-full"></div>
                   )}
                 </div>
-                <div className="flex-1 w-full">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-                    <div>
-                      <div className="text-sm text-gray-500">Profile Id:</div>
-                      <div className="font-medium">{userProfile?.customerId || id}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:gap-x-6 md:gap-y-4">
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500">Profile Id</div>
+                      <div className="font-medium truncate">{userProfile?.customerId || id}</div>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Name:</div>
-                      <div className="font-medium">{userProfile?.firstName} {userProfile?.lastName}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500">Name</div>
+                      <div className="font-medium truncate">{userProfile?.firstName} {userProfile?.lastName}</div>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">KYC Status:</div>
-                      <div className="font-medium">{userProfile?.kyc?.kycVerificationStatus || 'Pending'}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500">KYC Status</div>
+                      <div className="font-medium capitalize truncate">{userProfile?.kyc?.kycVerificationStatus || 'Pending'}</div>
                     </div>
-                    <div>
-                      <div className="text-sm text-gray-500">Profile Status:</div>
-                      <div className="font-medium">{userProfile?.accountVerificationStatus || 'Pending'}</div>
+                    <div className="min-w-0">
+                      <div className="text-xs text-gray-500">Profile Status</div>
+                      <div className="font-medium capitalize truncate">{userProfile?.accountVerificationStatus || 'Pending'}</div>
                     </div>
                   </div>
                 </div>

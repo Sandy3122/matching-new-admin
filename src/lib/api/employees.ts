@@ -6,21 +6,12 @@ export const fetchAllEmployees = async () => {
   const token = getAuthToken();
   const url = `${API_BASE_URL}/getall-employees`;
 
-  // Try with auth first (if available), then gracefully fallback without auth
-  const headersWithAuth: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  const headersNoAuth: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  let response = await fetch(url, { headers: headersWithAuth });
-
-  if (!response.ok && (response.status === 401 || response.status === 403)) {
-    console.warn('getall-employees unauthorized with token, retrying without Authorization header');
-    response = await fetch(url, { headers: headersNoAuth });
-  }
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 
   if (!response.ok) {
     const text = await response.text().catch(() => '');
@@ -36,19 +27,12 @@ export const searchEmployees = async (query: string) => {
   const token = getAuthToken();
   const url = `${API_BASE_URL}/employee-search?query=${encodeURIComponent(query)}`;
 
-  const headersWithAuth: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-  const headersNoAuth: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-
-  let response = await fetch(url, { headers: headersWithAuth });
-  if (!response.ok && (response.status === 401 || response.status === 403)) {
-    console.warn('employee-search unauthorized with token, retrying without Authorization header');
-    response = await fetch(url, { headers: headersNoAuth });
-  }
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
 
   if (!response.ok) {
     const text = await response.text().catch(() => '');

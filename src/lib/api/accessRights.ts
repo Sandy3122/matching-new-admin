@@ -83,7 +83,7 @@ export const updateAccessRightStatus = async ({ id, status }: { id: string, stat
  * Create a new role with access rights.
  * Mirrors legacy POST /access-rights { role, status }.
  */
-export const addAccessRight = async (payload: { role: string; status: 'active' | 'inactive' }) => {
+export const addAccessRight = async (payload: { role: string; status: 'active' | 'inactive'; roleLabel?: string }) => {
   const token = getAuthToken();
   if (!token) throw new Error('Not authenticated');
 

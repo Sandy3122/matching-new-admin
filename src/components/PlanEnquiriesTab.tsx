@@ -86,31 +86,31 @@ const PlanEnquiriesTab: React.FC = () => {
   const columns: ColumnDef<PlanEnquiry>[] = [
     {
       header: 'Customer',
-      accessorFn: (item) => `${item.customerName || ''} ${item.customerUserId || ''} ${item.customerMobileNumber || ''}`,
+      accessorFn: (item) => `${item.customerUserName || ''} ${item.customerUserId || ''} ${item.registeredMobileNumber || ''}`,
       enableSorting: true,
       enableColumnFilter: true,
       cell: ({ row }) => {
         const e = row.original;
         return (
           <div className="space-y-0.5 min-w-[140px]">
-            <div className="font-medium capitalize">{e.customerName || '—'}</div>
+            <div className="font-medium capitalize">{e.customerUserName || '—'}</div>
             <div className="text-xs text-gray-500">#{e.customerUserId || '—'}</div>
-            <div className="text-xs text-gray-500">{e.customerMobileNumber || '—'}</div>
+            <div className="text-xs text-gray-500">{e.registeredMobileNumber || '—'}</div>
           </div>
         );
       },
     },
     {
       header: 'Plan',
-      accessorFn: (item) => `${item.planName || ''} ${item.planAmount || ''}`,
+      accessorFn: (item) => `${item.planEnquiryName || ''} ${item.planEnquiryAmount || ''}`,
       enableSorting: true,
       enableColumnFilter: true,
       cell: ({ row }) => {
         const e = row.original;
         return (
           <div className="space-y-0.5">
-            <div className="font-medium">{e.planName || '—'}</div>
-            <div className="text-xs text-gray-500">{e.planAmount ? `₹${e.planAmount}` : '—'}</div>
+            <div className="font-medium">{e.planEnquiryName || '—'}</div>
+            <div className="text-xs text-gray-500">{e.planEnquiryAmount ? `₹${e.planEnquiryAmount}` : '—'}</div>
           </div>
         );
       },

@@ -109,7 +109,6 @@ const EmployeeRegistrationTab: React.FC = () => {
     Object.entries(formData).forEach(([k, v]) => fd.append(k, v));
     fd.append('kycDocument', files.kycDocument);
     fd.append('employeePhoto', files.employeePhoto);
-    fd.append('profilePic', files.employeePhoto);
     fd.append('employeeResume', files.employeeResume);
 
     mutation.mutate(fd);
@@ -133,7 +132,7 @@ const EmployeeRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label>Gender:</Label>
               <Select value={formData.gender} onValueChange={(v) => update('gender', v)}>
@@ -161,7 +160,7 @@ const EmployeeRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="dateOfBirth">Date Of Birth:</Label>
               <Input id="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={(e) => update('dateOfBirth', e.target.value)} required />
@@ -172,7 +171,7 @@ const EmployeeRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="phoneNumber">Phone Number (10 digits):</Label>
               <PhoneInput id="phoneNumber" value={formData.phoneNumber} onChange={(v) => update('phoneNumber', v)} required />
@@ -183,7 +182,7 @@ const EmployeeRegistrationTab: React.FC = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <Label>KYC Document Type:</Label>
               <Select value={formData.kycDocumentType} onValueChange={(v) => update('kycDocumentType', v)}>

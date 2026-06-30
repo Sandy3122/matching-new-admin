@@ -12,10 +12,10 @@ export type PlanEnquiryStatus = (typeof PLAN_ENQUIRY_STATUS_OPTIONS)[number];
 export interface PlanEnquiry {
   id: string;
   customerUserId?: string;
-  customerName?: string;
-  customerMobileNumber?: string;
-  planName?: string;
-  planAmount?: string | number;
+  customerUserName?: string;
+  registeredMobileNumber?: string;
+  planEnquiryName?: string;
+  planEnquiryAmount?: string | number;
   planEnquiryDateTime?: string;
   planEnquiryStatus?: PlanEnquiryStatus;
   planEnquiryComments?: string;

@@ -51,12 +51,24 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Always fetch fresh data when this component mounts
-  const { data: users, isLoading } = useQuery({
+  // Cache the (expensive, N+1) users-with-images fetch so reopening the
+  // "User Profiles" tab does NOT re-hit the API every time. Data is treated as
+  // fresh for 5 minutes, kept in cache for 10, and quietly refreshed every
+  // 5 minutes while the tab is open. Use the Refresh button for an on-demand
+  // update, or Hard Reset to also flush the server-side cache.
+  const {
+    data: users,
+    isLoading,
+    isFetching,
+    refetch,
+    dataUpdatedAt,
+  } = useQuery({
     queryKey: ['allUsersWithDetails'],
     queryFn: fetchAllUsersWithDetails,
-    staleTime: 0, // Always fetch fresh data
-    refetchOnMount: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes — no refetch on tab reopen within this window
+    gcTime: 10 * 60 * 1000, // keep cached data for 10 minutes
+    refetchInterval: 5 * 60 * 1000, // auto-refresh every 5 minutes while viewing
+    refetchOnWindowFocus: false, // rely on staleTime + interval instead of focus refetches
   });
 
   const flushMutation = useMutation({
@@ -223,7 +235,24 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
         defaultItemsPerPage={25}
         isLoading={isLoading}
         headerActions={
-          <AlertDialog>
+          <div className="flex items-center gap-2 flex-wrap">
+            {dataUpdatedAt > 0 && (
+              <span className="hidden md:inline text-xs text-gray-400 whitespace-nowrap">
+                Updated {new Date(dataUpdatedAt).toLocaleTimeString()}
+              </span>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              title="Reload the latest data"
+            >
+              <RefreshCw className={`h-4 w-4 mr-1 ${isFetching ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
                 variant="outline"
@@ -254,6 +283,7 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          </div>
         }
       />
       <ProfileImageModal

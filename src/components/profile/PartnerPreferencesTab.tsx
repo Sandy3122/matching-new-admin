@@ -142,6 +142,14 @@ const PartnerPreferencesTab: React.FC<PartnerPreferencesTabProps> = ({
 
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin';
 
+  // State keys are camelCase identifiers; the legacy UI displays them as
+  // spaced, capitalized words (capitalizeWordsWithSpaces).
+  const formatStateName = (key: string) =>
+    String(key)
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (c) => c.toUpperCase())
+      .trim();
+
   // Get dropdown options
   const educationOptions = dropdowns?.find((d: any) => d.id === 'heighestQualification')?.data || {};
   const workingWithOptions = dropdowns?.find((d: any) => d.id === 'workingWith')?.data || {};
@@ -186,15 +194,17 @@ const PartnerPreferencesTab: React.FC<PartnerPreferencesTabProps> = ({
     return countries;
   };
 
-  // Get available states based on selected countries
+  // Get available states based on selected countries.
+  // countryData[country] = { stateKey: { cityKey: cityName } }, so the state's
+  // VALUE is the cities object — the state display name comes from its key.
   const getAvailableStates = () => {
     if (!countryData || formData.partnerCountry.length === 0) return {};
-    
+
     const states: Record<string, string> = {};
     formData.partnerCountry.forEach(country => {
       if (countryData[country]) {
-        Object.entries(countryData[country]).forEach(([stateKey, stateName]) => {
-          states[stateKey] = stateName as string;
+        Object.keys(countryData[country]).forEach((stateKey) => {
+          states[stateKey] = formatStateName(stateKey);
         });
       }
     });
@@ -205,17 +215,17 @@ const PartnerPreferencesTab: React.FC<PartnerPreferencesTabProps> = ({
   const getStateLabel = (stateKey: string, options: Record<string, any>) => {
     for (const country of formData.partnerCountry) {
       if (countryData[country] && countryData[country][stateKey]) {
-        const stateName = countryData[country][stateKey];
-        return `${country} → ${stateName}`;
+        return `${country} → ${formatStateName(stateKey)}`;
       }
     }
     return options[stateKey] || stateKey;
   };
 
-  // Get available cities based on selected states
+  // Get available cities based on selected states.
+  // countryData[country][state] = { cityKey: cityName } — value IS the city name.
   const getAvailableCities = () => {
     if (!countryData || formData.partnerState.length === 0) return {};
-    
+
     const cities: Record<string, string> = {};
     formData.partnerCountry.forEach(country => {
       if (countryData[country]) {
@@ -236,10 +246,9 @@ const PartnerPreferencesTab: React.FC<PartnerPreferencesTabProps> = ({
     for (const country of formData.partnerCountry) {
       if (countryData[country]) {
         for (const state of formData.partnerState) {
-          if (countryData[country][state] && countryData[country][state][cityKey]) {
-            const stateName = countryData[country][state];
-            const cityName = countryData[country][state][cityKey];
-            return `${country} → ${stateName} → ${cityName}`;
+          const cityMap = countryData[country][state];
+          if (cityMap && cityMap[cityKey]) {
+            return `${country} → ${formatStateName(state)} → ${cityMap[cityKey]}`;
           }
         }
       }

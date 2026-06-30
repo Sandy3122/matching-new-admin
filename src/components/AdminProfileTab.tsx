@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
+import { formatDate } from '@/lib/utils';
 
 const AdminProfileTab: React.FC = () => {
   const { data, isLoading, error } = useQuery({
@@ -72,7 +73,7 @@ const AdminProfileTab: React.FC = () => {
               <InfoField label="First Name" value={adminProfile.firstName} />
               <InfoField label="Last Name" value={adminProfile.lastName} />
               <InfoField label="Gender" value={adminProfile.gender} />
-              <InfoField label="Date of Birth" value={new Date(adminProfile.dateOfBirth).toLocaleDateString()} />
+              <InfoField label="Date of Birth" value={formatDate(adminProfile.dateOfBirth)} />
               <InfoField label="Marital Status" value={adminProfile.maritalStatus} />
               <InfoField label="Email" value={adminProfile.email} />
               <InfoField label="Phone Number" value={adminProfile.phoneNumber} />
@@ -90,7 +91,7 @@ const AdminProfileTab: React.FC = () => {
                 <InfoField label="Employee ID" value={adminProfile.employeeId} />
                 <InfoField label="Designation" value={adminProfile.designation} />
                 <InfoField label="Role" value={adminProfile.role} />
-                <InfoField label="Joining Date" value={new Date(adminProfile.joiningDate).toLocaleDateString()} />
+                <InfoField label="Joining Date" value={formatDate(adminProfile.joiningDate)} />
                 <InfoField label="Account Status" value={<Badge variant={adminProfile.accountStatus === 'active' ? 'default' : 'destructive'} className={adminProfile.accountStatus === 'active' ? 'bg-green-500' : 'bg-red-500'}>{adminProfile.accountStatus}</Badge>} />
             </div>
         </CardContent>
