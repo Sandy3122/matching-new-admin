@@ -43,6 +43,7 @@ import {
 } from "lucide-react"
 import LoadingSpinner from "./loading-spinner";
 import { Skeleton } from "./skeleton";
+import { TableExportButtons } from "./table-export";
 
 export type ColumnDef<T> = TanstackColumnDef<T, unknown>;
 
@@ -56,6 +57,8 @@ export interface AdvancedTableProps<T> {
   isLoading?: boolean;
   onRowClick?: (row: T) => void;
   headerActions?: React.ReactNode;
+  exportable?: boolean;
+  exportFilename?: string;
 }
 
 const ColumnFilter = ({ column }: { column: Column<any, any> }) => {
@@ -101,6 +104,8 @@ export const AdvancedTable = <T extends object>({
   isLoading = false,
   onRowClick,
   headerActions,
+  exportable = true,
+  exportFilename,
 }: AdvancedTableProps<T>) => {
   const [rowSelection, setRowSelection] = useState({})
   const [columnVisibility, setColumnVisibility] = useState({})
@@ -211,6 +216,14 @@ export const AdvancedTable = <T extends object>({
                 ))}
               </SelectContent>
             </Select>
+            {exportable && (
+              <TableExportButtons
+                columns={columns}
+                rows={table.getFilteredRowModel().rows.map((r) => r.original)}
+                filename={exportFilename || title.replace(/\s+/g, '_').toLowerCase()}
+                title={title}
+              />
+            )}
             {headerActions}
           </div>
         </div>

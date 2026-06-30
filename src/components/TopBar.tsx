@@ -1,7 +1,9 @@
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
+import { fetchCurrentUser } from '@/lib/api';
 
 interface TopBarProps {
   onLogout: () => void;
@@ -10,8 +12,20 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick, isMobile }) => {
+  const { data: currentUser } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: fetchCurrentUser,
+    retry: 0,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const displayName =
+    currentUser?.name ||
+    [currentUser?.firstName, currentUser?.lastName].filter(Boolean).join(' ') ||
+    'Admin User';
+  const displayId = currentUser?.id || currentUser?.employeeId || currentUser?.adminId || '';
+
   const handleMenuClick = () => {
-    console.log('Menu button clicked in TopBar');
     if (onMenuClick) {
       onMenuClick();
     }
@@ -41,11 +55,13 @@ const TopBar: React.FC<TopBarProps> = ({ onLogout, onMenuClick, isMobile }) => {
           {/* User details - hidden on very small screens, visible on sm and up */}
           <div className="text-right hidden sm:block">
             <div className="text-xs sm:text-sm font-medium text-gray-900 truncate max-w-24 sm:max-w-32 md:max-w-none">
-              App0550553
+              {displayName}
             </div>
-            <div className="text-xs text-gray-500 truncate max-w-24 sm:max-w-32 md:max-w-none">
-              Dishant Test 12
-            </div>
+            {displayId && (
+              <div className="text-xs text-gray-500 truncate max-w-24 sm:max-w-32 md:max-w-none">
+                {displayId}
+              </div>
+            )}
           </div>
           
           {/* User avatar and logout button */}

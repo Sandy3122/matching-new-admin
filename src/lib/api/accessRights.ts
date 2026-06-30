@@ -78,3 +78,59 @@ export const updateAccessRightStatus = async ({ id, status }: { id: string, stat
 
   return response.json().catch(() => ({ message: 'Status updated successfully' }));
 };
+
+/**
+ * Create a new role with access rights.
+ * Mirrors legacy POST /access-rights { role, status }.
+ */
+export const addAccessRight = async (payload: { role: string; status: 'active' | 'inactive' }) => {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(`${API_BASE_URL}/access-rights`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(text || 'Failed to add access right');
+  }
+
+  return response.json().catch(() => ({ message: 'Role created successfully' }));
+};
+
+/**
+ * Update the list of routes a role can access.
+ * Mirrors legacy PATCH /access-rights/:id/routes { routeName: string[] }.
+ */
+export const updateAccessRightRoutes = async ({
+  id,
+  routeName,
+}: {
+  id: string;
+  routeName: string[];
+}) => {
+  const token = getAuthToken();
+  if (!token) throw new Error('Not authenticated');
+
+  const response = await fetch(`${API_BASE_URL}/access-rights/${id}/routes`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ routeName }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(text || 'Failed to update access right routes');
+  }
+
+  return response.json().catch(() => ({ message: 'Routes updated successfully' }));
+};

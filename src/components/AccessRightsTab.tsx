@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { fetchDropdowns, fetchSpecificDropdown, fetchAccessRights, deleteAccessRight, updateAccessRightStatus, AccessRight } from '@/lib/api';
+import { fetchDropdowns, fetchSpecificDropdown, fetchAccessRights, deleteAccessRight, updateAccessRightStatus, addAccessRight, updateAccessRightRoutes, AccessRight } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
@@ -86,6 +86,51 @@ const AccessRightsTab: React.FC = () => {
     queryFn: fetchAccessRights,
   });
 
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const routeName = Object.keys(newRole.routes);
+      await addAccessRight({ role: newRole.role, status: newRole.status });
+      // The create endpoint starts with an empty route list; assign selected
+      // routes by looking up the freshly created role id.
+      if (routeName.length > 0) {
+        const latest = await fetchAccessRights();
+        const created = latest.find((r) => r.role === newRole.role);
+        if (created) {
+          await updateAccessRightRoutes({ id: created.id, routeName });
+        }
+      }
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Role access rights created successfully.' });
+      queryClient.invalidateQueries({ queryKey: ['accessRights'] });
+      setIsAddDialogOpen(false);
+      setNewRole({ role: '', status: 'active', routes: {} });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedRole) return;
+      const routeName = Object.keys(newRole.routes);
+      await updateAccessRightRoutes({ id: selectedRole.id, routeName });
+      if (newRole.status !== selectedRole.status) {
+        await updateAccessRightStatus({ id: selectedRole.id, status: newRole.status });
+      }
+    },
+    onSuccess: () => {
+      toast({ title: 'Success', description: 'Role permissions updated successfully.' });
+      queryClient.invalidateQueries({ queryKey: ['accessRights'] });
+      setIsEditDialogOpen(false);
+      setSelectedRole(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const availableRoutes = routesData?.allRoutes || [
     '/employee-search', '/getall-employees', '/profile', '/addEmployee',
     '/access-rights', '/getall-appUsers', '/getUserById/:documentId',
@@ -102,11 +147,11 @@ const AccessRightsTab: React.FC = () => {
   const availableRoles = Object.keys(rolesData || {}).filter(key => key !== 'selectRole');
 
   const handleAddRole = () => {
-    toast({
-      title: 'Not Implemented',
-      description: 'API for adding new roles is not available.',
-      variant: 'destructive',
-    });
+    if (!newRole.role) {
+      toast({ title: 'Error', description: 'Please select a role.', variant: 'destructive' });
+      return;
+    }
+    addMutation.mutate();
   };
 
   const handleEditRole = (role: AccessRight) => {
@@ -114,17 +159,17 @@ const AccessRightsTab: React.FC = () => {
     setNewRole({
       role: role.role,
       status: role.status,
-      routes: {}
+      // Pre-check existing routes (backend stores routeName[]; read+write shown).
+      routes: (role.routeName || []).reduce((acc: RoutePermissions, route: string) => {
+        acc[route] = ['read', 'write'];
+        return acc;
+      }, {}),
     });
     setIsEditDialogOpen(true);
   };
 
   const handleUpdateRole = () => {
-    toast({
-      title: 'Not Implemented',
-      description: 'API for updating role permissions is not available.',
-      variant: 'destructive',
-    });
+    updateMutation.mutate();
   };
 
   const handleDeleteRole = (id: string) => {

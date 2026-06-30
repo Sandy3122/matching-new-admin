@@ -51,12 +51,14 @@ export const fetchAllUsersWithDetails = async () => {
   
   const users = await response.json();
   
-  // Fetch profile images for each user
+  // Fetch profile images for each user.
+  // Legacy convention: imgList[5] = profile image, imgList[6] = selfie.
   const usersWithImages = await Promise.all(
     users.map(async (user: any) => {
       try {
         const imageData = await fetchUserImageList(user.id);
-        const profileImage = imageData?.imgList?.[imageData.imgList.length - 1];
+        const imgList = Array.isArray(imageData?.imgList) ? imageData.imgList : [];
+        const profileImage = imgList[5] || imgList.find((img: any) => img?.imgUrl) || null;
         return {
           ...user,
           profileImage: profileImage?.imgUrl || null,
@@ -132,10 +134,13 @@ export const resetUserPassword = async (userId: string, newPassword: string) => 
 
 export const registerUser = async (userData: any) => {
   console.log('Registering new user:', userData);
+  const token = getAuthToken();
   const response = await fetch(`${API_BASE_URL}/user-registration`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // Send auth so the backend can stamp `accountCreatedBy` from the session user.
+      ...(token && { Authorization: `Bearer ${token}` }),
     },
     body: JSON.stringify(userData),
   });
@@ -169,8 +174,7 @@ export const fetchUserById = async (userId: string, fields?: string) => {
   return response.json();
 };
 
-export const fetchAdminProfile = async () => {
-  console.log('Fetching admin profile');
+export const fetchAdminProfile = async () => {  console.log('Fetching admin profile');
   const token = getAuthToken();
   if (!token) throw new Error('Not authenticated');
 
@@ -187,4 +191,51 @@ export const fetchAdminProfile = async () => {
   const data = await response.json();
   console.log('Admin profile data:', data);
   return data;
+};
+
+/**
+ * Fetch a user's interest/interaction data.
+ * Mirrors legacy GET /user-interest/:id which returns:
+ * userVisitedList, userShortlistedList, userSentInterestList,
+ * availableContactCount, viewContactDetailsList.
+ */
+export const fetchUserInterest = async (userId: string) => {
+  console.log('Fetching user interest for:', userId);
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/user-interest/${userId}`, {
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch user interest');
+  }
+
+  return response.json();
+};
+
+/**
+ * Fetch the profile field-set used for profile PDF generation.
+ * Mirrors legacy GET /generateProfilesPdfs/:id (falls back to /getProfileData/:id).
+ */
+export const fetchProfilePdfData = async (userId: string) => {
+  console.log('Fetching profile PDF data for:', userId);
+  const token = getAuthToken();
+  const headers = {
+    ...(token && { Authorization: `Bearer ${token}` }),
+    'Content-Type': 'application/json',
+  };
+
+  let response = await fetch(`${API_BASE_URL}/generateProfilesPdfs/${userId}`, { headers });
+  if (!response.ok) {
+    response = await fetch(`${API_BASE_URL}/getProfileData/${userId}`, { headers });
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch profile data');
+  }
+
+  return response.json();
 };

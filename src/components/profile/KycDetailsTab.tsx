@@ -57,17 +57,27 @@ const KycDetailsTab: React.FC<KycDetailsTabProps> = ({
 
   const kycData = userProfile?.kyc || {};
 
+  // Audit strings are stored as `name/id/timestamp` (or `name/id/phone/timestamp`).
+  const formatAudit = (value?: string) => {
+    if (!value) return '—';
+    const parts = String(value).split('/');
+    const name = parts[0] || '—';
+    const id = parts[1] || '—';
+    const date = parts[parts.length - 1] || '—';
+    return `Id: ${id}; Name: ${name}; Date: ${date}`;
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle></CardTitle>
+        <CardTitle>KYC Details</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <Label>Kyc Document Name:</Label>
             <div className="p-2 bg-gray-50 rounded">
-              {kycData.kycDocumentType || 'AadharCard'}
+              {kycData.kycDocumentType || '—'}
             </div>
           </div>
 
@@ -76,49 +86,58 @@ const KycDetailsTab: React.FC<KycDetailsTabProps> = ({
           <div>
             <Label>Document Front Url:</Label>
             <div className="p-2">
-              <a 
-                href={kycData.kycDocumentFrontUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                View Front Doc
-              </a>
+              {kycData.kycDocumentFrontUrl ? (
+                <a
+                  href={kycData.kycDocumentFrontUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  View Front Doc
+                </a>
+              ) : (
+                <span className="text-gray-400 text-sm">Not uploaded</span>
+              )}
             </div>
           </div>
 
           <div>
             <Label>Document Back Url:</Label>
             <div className="p-2">
-              <a 
-                href={kycData.kycDocumentBackUrl || "#"} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                View Back Doc
-              </a>
+              {kycData.kycDocumentBackUrl ? (
+                <a
+                  href={kycData.kycDocumentBackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline"
+                >
+                  View Back Doc
+                </a>
+              ) : (
+                <span className="text-gray-400 text-sm">Not uploaded</span>
+              )}
             </div>
           </div>
 
           <div>
             <Label>Front Doc Uploaded At:</Label>
             <div className="p-2 bg-gray-50 rounded text-sm">
-              Id: E8829770; Name: Dishant Negi; Date: 10/28/2024 09:37 PM.
+              {formatAudit(kycData.kycFrontDocUploadedBy)}
             </div>
           </div>
 
           <div>
             <Label>Back Doc Uploaded At:</Label>
             <div className="p-2 bg-gray-50 rounded text-sm">
-              Id: --; Name: --; Date: --.
+              {formatAudit(kycData.kycBackDocUploadedBy)}
             </div>
           </div>
 
           <div>
             <Label>Kyc Verified By:</Label>
             <div className="p-2 bg-gray-50 rounded text-sm">
-              Id: E9624463; Name: Sandeep Seeram; Status: Pending; Date: 4/29/2025 03:41 PM.
+              {formatAudit(kycData.kycVerifiedBy)}
+              {kycData.kycVerificationStatus ? `; Status: ${kycData.kycVerificationStatus}` : ''}
             </div>
           </div>
 

@@ -27,6 +27,7 @@ const GalleryPhotoTab = React.lazy(() => import('@/components/profile/GalleryPho
 const UploadDocumentsTab = React.lazy(() => import('@/components/profile/UploadDocumentsTab'));
 const PartnerPreferencesTab = React.lazy(() => import('@/components/profile/PartnerPreferencesTab'));
 const DeleteProfileTab = React.lazy(() => import('@/components/profile/DeleteProfileTab'));
+const UserInterestTab = React.lazy(() => import('@/components/profile/UserInterestTab'));
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -109,8 +110,9 @@ const UserProfile: React.FC = () => {
     navigate('/');
   };
 
-  // Get profile image (last image in imgList) with safety checks
-  const profileImage = userImages?.imgList?.[userImages.imgList.length - 1];
+  // Get profile image. Legacy convention: imgList[5] = profile image.
+  const imgListArr = Array.isArray(userImages?.imgList) ? userImages.imgList : [];
+  const profileImage = imgListArr[5] || imgListArr.find((img: any) => img?.imgUrl);
   const isProfileImageVerified = profileImage?.imgVerificationStatus === 'verified';
 
   // Handle any errors from queries
@@ -142,6 +144,7 @@ const UserProfile: React.FC = () => {
     { id: 'gallery-photo', label: 'Gallery Photo' },
     { id: 'upload-documents', label: 'Upload Documents' },
     { id: 'partner-preferences', label: 'Partner Preferences' },
+    { id: 'user-interest', label: 'User Interest' },
     { id: 'delete-profile', label: 'Delete Profile' },
   ];
 
@@ -202,6 +205,8 @@ const UserProfile: React.FC = () => {
         return <TabComponent><UploadDocumentsTab {...commonProps} /></TabComponent>;
       case 'partner-preferences':
         return <TabComponent><PartnerPreferencesTab {...commonProps} /></TabComponent>;
+      case 'user-interest':
+        return <TabComponent><UserInterestTab {...commonProps} /></TabComponent>;
       case 'delete-profile':
         return <TabComponent><DeleteProfileTab {...commonProps} /></TabComponent>;
       default:

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdvancedTable, ColumnDef } from '@/components/ui/advanced-table';
@@ -8,6 +8,20 @@ import { useState } from 'react';
 import ProfileImageModal from "./ui/profile-image-modal";
 import UserAvatar from './ui/user-avatar';
 import { fetchAllUsersWithDetails } from '@/lib/api/users';
+import { flushCache } from '@/lib/api';
+import { useToast } from '@/hooks/use-toast';
+import { RefreshCw } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface User {
   id: string;
@@ -34,6 +48,8 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [profileImageUrl, setProfileImageUrl] = useState<string | undefined>(undefined);
   const [modalUserName, setModalUserName] = useState<string | undefined>(undefined);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Always fetch fresh data when this component mounts
   const { data: users, isLoading } = useQuery({
@@ -41,6 +57,21 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
     queryFn: fetchAllUsersWithDetails,
     staleTime: 0, // Always fetch fresh data
     refetchOnMount: true,
+  });
+
+  const flushMutation = useMutation({
+    mutationFn: flushCache,
+    onSuccess: () => {
+      toast({ title: 'Cache cleared', description: 'Server cache flushed. Reloading data...' });
+      queryClient.invalidateQueries({ queryKey: ['allUsersWithDetails'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to flush cache',
+        variant: 'destructive',
+      });
+    },
   });
 
   const handleProfileImageClick = (user: User, event?: React.MouseEvent) => {
@@ -191,6 +222,39 @@ const UserListTab: React.FC<UserListTabProps> = ({ onViewProfile }) => {
         itemsPerPageOptions={[10, 25, 50, 100]}
         defaultItemsPerPage={25}
         isLoading={isLoading}
+        headerActions={
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9 text-orange-600 border-orange-300 hover:bg-orange-50"
+                disabled={flushMutation.isPending}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${flushMutation.isPending ? 'animate-spin' : ''}`} />
+                Hard Reset
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear server cache?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This flushes the server-side Redis cache and forces fresh data on the next load.
+                  Use this if listings look stale.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-orange-600 hover:bg-orange-700"
+                  onClick={() => flushMutation.mutate()}
+                >
+                  Hard Reset
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        }
       />
       <ProfileImageModal
         open={modalOpen}

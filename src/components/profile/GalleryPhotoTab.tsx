@@ -96,68 +96,40 @@ const GalleryPhotoTab: React.FC<GalleryPhotoTabProps> = ({
     }
   };
 
-  const photoData = [
-    {
-      name: "Photo 1",
-      status: userImages?.imgList?.[0]?.imgVerificationStatus || "pending",
-      verifiedBy: userImages?.imgList?.[0]?.imgVerificationBy || "--",
-      verifiedByName: "--",
-      statusText: userImages?.imgList?.[0]?.imgVerificationStatus || "Pending",
-      date: "--",
-      imageUrl: userImages?.imgList?.[0]?.imgUrl,
-      index: 0
-    },
-    {
-      name: "Photo 2",
-      status: userImages?.imgList?.[1]?.imgVerificationStatus || "pending", 
-      verifiedBy: "E9624463",
-      verifiedByName: "Sandeep Seeram",
-      statusText: userImages?.imgList?.[1]?.imgVerificationStatus || "Pending",
-      date: "12/25/2024 11:03 AM",
-      imageUrl: userImages?.imgList?.[1]?.imgUrl,
-      index: 1
-    },
-    {
-      name: "Photo 3",
-      status: userImages?.imgList?.[2]?.imgVerificationStatus || "pending",
-      verifiedBy: "--",
-      verifiedByName: "--", 
-      statusText: userImages?.imgList?.[2]?.imgVerificationStatus || "Pending",
-      date: "--",
-      imageUrl: userImages?.imgList?.[2]?.imgUrl,
-      index: 2
-    },
-    {
-      name: "Photo 4",
-      status: userImages?.imgList?.[3]?.imgVerificationStatus || "pending",
-      verifiedBy: "--",
-      verifiedByName: "--",
-      statusText: userImages?.imgList?.[3]?.imgVerificationStatus || "Pending", 
-      date: "--",
-      imageUrl: userImages?.imgList?.[3]?.imgUrl,
-      index: 3
-    },
-    {
-      name: "Photo 5",
-      status: userImages?.imgList?.[4]?.imgVerificationStatus || "pending",
-      verifiedBy: "--",
-      verifiedByName: "--",
-      statusText: userImages?.imgList?.[4]?.imgVerificationStatus || "Pending",
-      date: "--",
-      imageUrl: userImages?.imgList?.[4]?.imgUrl,
-      index: 4
-    },
-    {
-      name: "Profile Image",
-      status: userImages?.imgList?.[5]?.imgVerificationStatus || "pending",
-      verifiedBy: "--", 
-      verifiedByName: "--",
-      statusText: userImages?.imgList?.[5]?.imgVerificationStatus || "Pending",
-      date: "--",
-      imageUrl: userImages?.imgList?.[5]?.imgUrl,
-      index: 5
-    }
+  // Parse the `name/id/timestamp` audit string stored on each image slot.
+  const parseVerifiedBy = (value?: string) => {
+    const parts = String(value || '').split('/');
+    return {
+      name: parts[0] || '--',
+      id: parts[1] || '--',
+      date: parts[parts.length - 1] && parts.length > 1 ? parts[parts.length - 1] : '--',
+    };
+  };
+
+  const slots = [
+    { name: 'Photo 1', index: 0 },
+    { name: 'Photo 2', index: 1 },
+    { name: 'Photo 3', index: 2 },
+    { name: 'Photo 4', index: 3 },
+    { name: 'Photo 5', index: 4 },
+    { name: 'Profile Image', index: 5 },
+    { name: 'Selfie', index: 6 },
   ];
+
+  const photoData = slots.map((slot) => {
+    const img = userImages?.imgList?.[slot.index] || {};
+    const audit = parseVerifiedBy(img.imgVerificationBy);
+    return {
+      name: slot.name,
+      status: img.imgVerificationStatus || 'pending',
+      verifiedBy: audit.id,
+      verifiedByName: audit.name,
+      statusText: img.imgVerificationStatus || 'Pending',
+      date: audit.date,
+      imageUrl: img.imgUrl,
+      index: slot.index,
+    };
+  });
 
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin';
 
@@ -208,7 +180,14 @@ const GalleryPhotoTab: React.FC<GalleryPhotoTabProps> = ({
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        handleFileSelect(`image${photo.index + 1}`, file);
+                        // Legacy field mapping: slot 5 -> profileImage, slot 6 -> selfieImage.
+                        const slotKey =
+                          photo.index === 5
+                            ? 'profileImage'
+                            : photo.index === 6
+                            ? 'selfieImage'
+                            : `image${photo.index + 1}`;
+                        handleFileSelect(slotKey, file);
                       }
                     }}
                     className="hidden"

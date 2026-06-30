@@ -14,6 +14,15 @@ import AnalyticsTab from './AnalyticsTab';
 import { AppSidebar } from "./AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AdminProfileTab from './AdminProfileTab';
+import PlanEnquiriesTab from './PlanEnquiriesTab';
+import ReportedUsersTab from './ReportedUsersTab';
+import EmployeeRegistrationTab from './EmployeeRegistrationTab';
+import GeneratePdfsTab from './GeneratePdfsTab';
+import NotificationSendTab from './notifications/NotificationSendTab';
+import NotificationTopicsTab from './notifications/NotificationTopicsTab';
+import NotificationCampaignsTab from './notifications/NotificationCampaignsTab';
+import NotificationMonitoringTab from './notifications/NotificationMonitoringTab';
+import NotificationEventLogsTab from './notifications/NotificationEventLogsTab';
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DashboardProps {
@@ -63,6 +72,24 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
         return <EmployeeListTab key="get-all-employees" />;
       case 'employee-password-reset':
         return <EmployeePasswordResetTab key="employee-password-reset" />;
+      case 'employee-registration':
+        return <EmployeeRegistrationTab key="employee-registration" />;
+      case 'plan-enquiries':
+        return <PlanEnquiriesTab key="plan-enquiries" />;
+      case 'reported-users':
+        return <ReportedUsersTab key="reported-users" />;
+      case 'generate-pdfs':
+        return <GeneratePdfsTab key="generate-pdfs" />;
+      case 'notification-send':
+        return <NotificationSendTab key="notification-send" />;
+      case 'notification-topics':
+        return <NotificationTopicsTab key="notification-topics" />;
+      case 'notification-campaigns':
+        return <NotificationCampaignsTab key="notification-campaigns" />;
+      case 'notification-monitoring':
+        return <NotificationMonitoringTab key="notification-monitoring" />;
+      case 'notification-event-logs':
+        return <NotificationEventLogsTab key="notification-event-logs" />;
       default:
         return (
           <div className="bg-white rounded-lg shadow p-4 sm:p-6">

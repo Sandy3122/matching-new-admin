@@ -27,6 +27,14 @@ import {
   Camera,
   UserPlus,
   BarChart3,
+  Send,
+  Megaphone,
+  Tags,
+  Activity,
+  ScrollText,
+  CreditCard,
+  ShieldAlert,
+  FileDown,
 } from "lucide-react";
 
 // Profile sections for individual user profiles
@@ -67,6 +75,9 @@ const sidebarGroups = [
       { id: "user-password-reset", title: "User Password Reset", icon: Settings },
       { id: "user-profiles", title: "User Profiles", icon: Users },
       { id: "image-verification", title: "Image Verification", icon: Camera },
+      { id: "plan-enquiries", title: "Plan Enquiries", icon: CreditCard },
+      { id: "reported-users", title: "Reported Users", icon: ShieldAlert },
+      { id: "generate-pdfs", title: "Generate PDFs", icon: FileDown },
     ]
   },
   {
@@ -74,7 +85,18 @@ const sidebarGroups = [
     items: [
       { id: "employee-search", title: "Employee Search", icon: Search },
       { id: "get-all-employees", title: "Get all employees", icon: Users },
+      { id: "employee-registration", title: "Employee Registration", icon: UserPlus },
       { id: "employee-password-reset", title: "Employee Password Reset", icon: Settings },
+    ]
+  },
+  {
+    label: "Notifications",
+    items: [
+      { id: "notification-send", title: "Send", icon: Send },
+      { id: "notification-topics", title: "Topics", icon: Tags },
+      { id: "notification-campaigns", title: "Campaigns", icon: Megaphone },
+      { id: "notification-monitoring", title: "Monitoring", icon: Activity },
+      { id: "notification-event-logs", title: "Event Logs", icon: ScrollText },
     ]
   }
 ];

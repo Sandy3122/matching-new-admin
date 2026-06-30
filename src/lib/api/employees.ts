@@ -81,13 +81,14 @@ export const resetEmployeePassword = async (employeeId: string, newPassword: str
 export const updateEmployeeStatus = async (employeeId: string, status: string) => {
   console.log('Updating employee status:', employeeId, status);
   const token = getAuthToken();
-  const response = await fetch(`${API_BASE_URL}/updateEmployeeStatus`, {
+  // Legacy backend contract: PATCH /employee-status/:employeeId  body { status }
+  const response = await fetch(`${API_BASE_URL}/employee-status/${employeeId}`, {
     method: 'PATCH',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ employeeId, status }),
+    body: JSON.stringify({ status }),
   });
   
   if (!response.ok) {
@@ -100,18 +101,46 @@ export const updateEmployeeStatus = async (employeeId: string, status: string) =
 export const updateEmployeeRole = async (employeeId: string, role: string) => {
   console.log('Updating employee role:', employeeId, role);
   const token = getAuthToken();
-  const response = await fetch(`${API_BASE_URL}/updateEmployeeRole`, {
+  // Legacy backend contract: PATCH /updateRole/:employeeId  body { role }
+  const response = await fetch(`${API_BASE_URL}/updateRole/${employeeId}`, {
     method: 'PATCH',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ employeeId, role }),
+    body: JSON.stringify({ role }),
   });
   
   if (!response.ok) {
     throw new Error('Failed to update employee role');
   }
   
+  return response.json();
+};
+
+/**
+ * Register a new employee (multipart upload).
+ * Mirrors legacy POST /employee-registration handled by
+ * employeeRegistrationController.handleEmployeeRegistration.
+ * Expects a FormData with text fields plus files:
+ * employeePhoto / profilePic, employeeResume, kycDocument.
+ */
+export const registerEmployee = async (formData: FormData) => {
+  console.log('Registering new employee');
+  const token = getAuthToken();
+  const response = await fetch(`${API_BASE_URL}/employee-registration`, {
+    method: 'POST',
+    headers: {
+      // Do NOT set Content-Type; the browser sets the multipart boundary.
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(text || 'Failed to register employee');
+  }
+
   return response.json();
 };

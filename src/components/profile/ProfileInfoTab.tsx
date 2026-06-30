@@ -59,10 +59,24 @@ const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
 
   const canEdit = currentUser?.role === 'admin' || currentUser?.role === 'superAdmin';
 
+  // accountCreatedBy is stored as `name/id/phone/datetime`.
+  const createdParts = String(userProfile?.accountCreatedBy || '').split('/');
+  const registeredByName = createdParts[0] || 'N/A';
+  const registeredById = createdParts[1] || 'N/A';
+  const createdDate =
+    createdParts[3] ||
+    (typeof userProfile?.accountCreatedDateAndTime === 'object'
+      ? ''
+      : userProfile?.accountCreatedDateAndTime) ||
+    'N/A';
+  // accountVerifiedBy is stored as `name/id/phone/datetime`.
+  const verifiedParts = String(userProfile?.accountVerifiedBy || '').split('/');
+  const verifiedDate = verifiedParts[3] || 'N/A';
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle></CardTitle>
+        <CardTitle>Profile Info</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -95,83 +109,55 @@ const ProfileInfoTab: React.FC<ProfileInfoTabProps> = ({
 
           <div>
             <Label>Profile Registered By Id:</Label>
-            <Input 
-              value="E8829770" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={registeredById} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Profile Registered By:</Label>
-            <Input 
-              value="Dishant Negi" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={registeredByName} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Profile Created Date:</Label>
-            <Input 
-              value="10/25/2024 10:19 AM" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={createdDate} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Profile Verified Date:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={verifiedDate} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Block Profile:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={userProfile?.blockProfile || 'no'} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Hide Profile:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={userProfile?.hideProfile || 'no'} readOnly className="bg-gray-50" />
           </div>
 
           <div>
             <Label>Last Login Date:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
+            <Input
+              value={
+                typeof userProfile?.lastLoginDateTime === 'object'
+                  ? 'N/A'
+                  : userProfile?.lastLoginDateTime || 'N/A'
+              }
+              readOnly
+              className="bg-gray-50"
             />
           </div>
 
           <div>
             <Label>Delete Profile:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={userProfile?.deleteProfile || 'no'} readOnly className="bg-gray-50" />
           </div>
 
           <div className="md:col-span-2">
             <Label>Reason For Delete:</Label>
-            <Input 
-              value="null" 
-              readOnly 
-              className="bg-gray-50" 
-            />
+            <Input value={userProfile?.reasonForDelete || 'N/A'} readOnly className="bg-gray-50" />
           </div>
         </div>
 
