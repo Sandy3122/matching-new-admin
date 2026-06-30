@@ -14,7 +14,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { fetchDropdowns, fetchSpecificDropdown, fetchAccessRights, deleteAccessRight, updateAccessRightStatus, addAccessRight, updateAccessRightRoutes, AccessRight } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatDate } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -325,7 +325,7 @@ const AccessRightsTab: React.FC = () => {
     {
       accessorKey: 'timeStamp',
       header: 'Created Date',
-      accessorFn: (item) => item.timeStamp ? new Date(item.timeStamp).toLocaleDateString() : 'N/A',
+      accessorFn: (item) => formatDate(item.timeStamp),
       enableSorting: true,
       enableColumnFilter: false,
       enableGlobalFilter: false,

@@ -18,13 +18,11 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function formatToIST(value?: string | number | Date | null): string {
   if (value === null || value === undefined) return "--";
-  const raw = typeof value === "string" ? value.trim() : value;
-  if (raw === "" || raw === "--") return "--";
+  const trimmed = typeof value === "string" ? value.trim() : value;
+  if (trimmed === "" || trimmed === "--") return "--";
 
-  const date = raw instanceof Date ? raw : new Date(raw);
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
+  const date = toDate(value);
+  if (!date) return String(value);
 
   return (
     date.toLocaleString("en-IN", {
@@ -56,7 +54,19 @@ export function toDate(value?: unknown): Date | null {
     return null;
   }
 
-  const d = new Date(value as string | number);
+  if (typeof value === "string") {
+    let s = value.trim();
+    // Canonical IST audit format, e.g. "April 13, 2026 at 7:01:47 PM UTC+5:30",
+    // which the JS Date parser can't read directly. Normalize the " at "
+    // separator and the non-standard "UTC+5:30" offset.
+    if (/UTC\+5:30/i.test(s) || /\s+at\s+/i.test(s)) {
+      s = s.replace(/\s+at\s+/i, " ").replace(/UTC\+5:30/i, "GMT+0530");
+    }
+    const d = new Date(s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(value as number);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 

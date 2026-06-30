@@ -187,6 +187,10 @@ export const fetchAdminProfile = async () => {  console.log('Fetching admin prof
   if (!token) throw new Error('Not authenticated');
 
   const response = await fetch(`${API_BASE_URL}/profile`, {
+    // Bypass the browser HTTP cache. Firebase Hosting tags responses with
+    // `Cache-Control: max-age=600`, which caused a stale 404 to be replayed
+    // "from disk cache" even though the network returns 200.
+    cache: 'no-store',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

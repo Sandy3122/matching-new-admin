@@ -23,6 +23,7 @@ export const fetchCurrentUser = async () => {
   console.log('Fetching current user session');
   const token = getAuthToken();
   const response = await fetch(`${API_BASE_URL}/getUserDataFromSessions`, {
+    cache: 'no-store',
     headers: {
       ...(token && { 'Authorization': `Bearer ${token}` }),
       'Content-Type': 'application/json',

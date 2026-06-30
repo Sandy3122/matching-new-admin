@@ -12,6 +12,8 @@ const AdminProfileTab: React.FC = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminProfile'],
     queryFn: fetchAdminProfile,
+    retry: 1,
+    staleTime: 1000 * 60 * 5,
   });
 
   if (isLoading) {

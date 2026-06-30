@@ -37,8 +37,8 @@ export const isTokenExpired = (token: string): boolean => {
 export const logoutUser = () => {
   localStorage.removeItem('authToken');
   localStorage.removeItem('rememberMe');
-  // Optionally, reload the app or redirect to login route.
-  window.location.href = '/';
+  // Redirect to the app root, respecting the deployed base path (e.g. /newadmin/).
+  window.location.href = import.meta.env.BASE_URL || '/';
 };
 
 export const getAuthToken = (): string | null => {
